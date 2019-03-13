@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "doc": "mkdir -p apidoc && apidoc -i ./routes/ -o ./apidoc/"
+    "doc": "mkdir -p public/apidoc && apidoc -i ./routes/ -o ./public/apidoc/"
   },
   "dependencies": {
     "cookie-parser": "~1.4.3",
