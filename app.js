@@ -9,6 +9,18 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var emailRouter = require('./routes/emails');
 
+// mongodb connect
+var mongoose = require('mongoose');
+var dbconfig = require('./config/db');
+mongoose.set('useCreateIndex', true);
+mongoose.connect(dbconfig.mongodb, { useNewUrlParser: true } );
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+  // we're connected!
+  console.log(" Successfully Create Mongodb Connection :) ");
+});
+
 var app = express();
 
 app.use(cors());

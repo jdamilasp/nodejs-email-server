@@ -1,8 +1,14 @@
 var express = require('express');
 var router = express.Router();
+var ObjectId = require('mongoose').Types.ObjectId;
 
+var CONSTANT = require('./../config/constant');
 var STATUS = require('./../config/status');
 var DUMMY = require('./../config/dummy');
+
+var EMAILES = require('./../model/emails');
+
+var EMAIL_SERVICE = require('./../service/emailService');
 
 /**
  * @api {post} /v1/emails 1. Send Email
@@ -53,11 +59,38 @@ router.post('/', function(req, res, next) {
       return res.status(400).json({error : "EmailValidationErr", message: "`email` is invalid format. value: `" + req.body.to});
     }else{
 
-        // 1. Email Info Dump in MongoDB as Email collection.
-        // 2. Send Email with Email Info
-        // 3. Update Email collection after email sent or not. update as SENT, QUEUED or FAILED
-        return res.status(200).json({ id: DUMMY.id, status: STATUS.SENT })
-
+        let nowTime = new Date();    
+        let status = (nowTime.getHours() < CONSTANT.office.open || nowTime.getHours() > CONSTANT.office.close ) ? STATUS.QUEUED: null;
+        let newEmail = new EMAILES({
+            to: req.body.to,
+            subject: req.body.subject,
+            content: req.body.content,
+            status: status
+        })
+        newEmail.save(function(err, result){
+            if(err){
+                return res.status(500).jsonp({error : err })
+            }
+            if(result.status === STATUS.QUEUED){
+                return res.status(200).json({ id : result._id, status : result.status })
+            }else{
+                let emailInfo = { to: result.to, subject: result.subject, content: result.content };
+                /** Email Sending Here */
+                EMAIL_SERVICE.sendEmail(emailInfo, function(err, message){                
+                    if(err){
+                        result.status = STATUS.FAILED;   
+                    }else{
+                        result.status = STATUS.SENT;
+                    }                    
+                    result.save(function(err2, result2){                
+                        if(err2){
+                            return res.status(500).jsonp({error : err2 })
+                        }                    
+                        return res.status(200).json({ id: result2.id, status: result2.status })
+                    })                
+                })
+            }
+        })
     }
 });
 
@@ -94,14 +127,20 @@ sent a new email via [POST] /v1/emails endpoint.
  */
 router.get('/:id', function(req, res, next) {
   
-    // 1. Checking id is valid format 
-        // 400 id invalid format 
-    // 2. Id find in DB
-    // 3.1 if find 
-        // 200 result
-    // 3.2 else
-        // 404 not found     
-    return res.status(200).json({ id: DUMMY.id, status: STATUS.SENT })
+    if(ObjectId.isValid(req.params.id)){
+        EMAILES.findById({ _id: ObjectId(req.params.id)}, function(err, result){
+            if(err){
+                return res.status(500).json({error: err })
+            }
+            if(result){
+                return res.status(200).json({ id: req.params.id, status: result.status })
+            }else{
+                return res.status(404).json({ error: "NotFound", message: "given `id` is not found. id : " + req.params.id });                  
+            }
+        })
+    }else{
+        return res.status(400).json({ error: "ValidationError", message: "`id` is invalid format. id :" + req.params.id });          
+    }    
 });
 
 
@@ -137,14 +176,26 @@ sent a new email via [POST] /v1/emails endpoint.
  */
 router.delete('/:id', function(req, res, next) {
   
-    // 1. Checking id is valid format 
-        // 400 id invalid format 
-    // 2. Id find in DB
-    // 3.1 if find delete
-        // 200 result
-    // 3.2 else
-        // 404 not found     
-    return res.status(200).json({ id: DUMMY.id, deleted: true })
+    if(ObjectId.isValid(req.params.id)){
+        EMAILES.findById(req.params.id, function(err, result){
+            if(err){
+                return res.status(500).json({error: err })
+            }
+            if(result){                
+                EMAILES.deleteOne({ _id: ObjectId(req.params.id) }, function (err) {        
+                    if(err){
+                        return res.status(200).json({ id: req.params.id, deleted: false })
+                    }
+                    return res.status(200).json({ id: req.params.id, deleted: true })
+                });        
+            }else{
+                return res.status(404).json({ error: "NotFound", message: "given `id` is not found. id : " + req.params.id });                  
+            }
+        })
+    }else{
+        return res.status(400).json({ error: "ValidationError", message: "`id` is invalid format. id :" + req.params.id });          
+    }    
+
 });
 
 module.exports = router;
