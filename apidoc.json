@@ -1,0 +1,11 @@
+{
+  "name": "NodeJs Email Server",
+  "version": "0.0.0",
+  "description": "NodeJs Email Sending Server",
+  "apidoc": {
+    "title": "NodeJs Email Sending Server",
+    "url" : "http://localhost:2010"
+    
+  },
+  "sampleUrl" : "http://localhost:2010"
+}
