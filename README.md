@@ -42,5 +42,21 @@ Server start : http://localhost:2010
 
 Server start : http://localhost:2010/apidoc
 
+API Doc generation config in apidoc.json 
+<pre>
+    {
+      "name": "NodeJs Email Server",
+      "version": "1.0.0",
+      "description": "NodeJs Email Sending Server",
+      "apidoc": {
+        "title": "NodeJs Email Sending Server",
+        "url" : "http://localhost:2010"
+      },
+      "sampleUrl" : "http://localhost:2010"
+    }
+</pre>
+Here API Doc UI : 
+https://github.com/jdamilasp/nodejs-email-server/blob/master/ui/nodejsemailserverapidoc.png
+
 ### Contcat Info 
 email : jdamilasp@gmail.com 
