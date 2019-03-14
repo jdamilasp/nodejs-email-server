@@ -20,7 +20,7 @@ eg : mongodb://localhost/node
 </pre>
 
 ### Email Server config 
-3. go to config.email.js modify server config 
+3. go to config/email.js modify server config 
 
 * If you are using gmail server 
 <pre>
